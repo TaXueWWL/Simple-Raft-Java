@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
  * @author snowalker
  * @version 1.0
  * @date 2022/4/9 22:58
- * @desc TODO Leader日志同步task
+ * @desc Leader日志同步task
  */
 public class LogReplicationTask {
 
