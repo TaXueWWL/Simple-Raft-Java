@@ -1,6 +1,10 @@
 # Simple-Raft-Java
 
-https://raft.github.io/
+> A simple Java implementation of the Raft paper
+> 
+> https://raft.github.io/
+
+
 
 ~~~
 core     raft核心
