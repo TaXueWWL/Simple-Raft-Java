@@ -16,7 +16,6 @@ import lombok.Setter;
  * @date 2022/4/10 12:24
  * @desc 核心层上下文 封装各种内部组件
  */
-@Getter
 @Setter
 public class RaftNodeContext {
 
@@ -42,5 +41,34 @@ public class RaftNodeContext {
 
 	/**角色状态存储*/
 	private RaftNodeStore store;
+
+	public RaftNodeId currentId() {
+		return currentId;
+	}
+
+	public RaftNodeGroup group() {
+		return group;
+	}
+
+	public RpcConnector connector() {
+		return connector;
+	}
+
+	public Scheduler scheduler() {
+		return scheduler;
+	}
+
+	public EventBus eventBus() {
+		return eventBus;
+	}
+
+	public TaskExecutor taskExecutor() {
+		return taskExecutor;
+	}
+
+	public RaftNodeStore store() {
+		return store;
+	}
+
 
 }
