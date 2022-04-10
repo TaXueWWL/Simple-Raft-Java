@@ -1,10 +1,7 @@
 package com.snowalker.raft.core.leaderelection.protocol;
 
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author snowalker
@@ -13,6 +10,7 @@ import lombok.ToString;
  * @desc 请求投票RPC 请求实体
  */
 @Data
+@Builder
 public class RequestVoteRpcRequest {
 
 	/**当前选举的任期*/
