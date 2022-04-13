@@ -80,11 +80,12 @@ public class RaftNodeGroup {
 	 * 枚举日志复制节点，即枚举除本身之外的其他所有节点
 	 * @return
 	 */
-	public Collection<RaftGroupMemberMetadata> listReplicationMembersWithoutSelf() {
+	public Collection<RaftNodeEndPoint> listReplicationMembersWithoutSelf() {
 		return raftGroupMemberMap.entrySet()
 				.stream()
 				.filter(groupMember -> !groupMember.getKey().equals(this.currentNodeId))
 				.map(Map.Entry::getValue)
+				.map(RaftGroupMemberMetadata::getEndPoint)
 				.collect(Collectors.toList());
 	}
 

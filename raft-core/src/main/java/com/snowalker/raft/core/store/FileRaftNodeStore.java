@@ -5,24 +5,35 @@ import com.snowalker.raft.common.exception.NodeStoreException;
 import com.snowalker.raft.common.store.RandomAccessFileDelegator;
 import com.snowalker.raft.common.store.SeekableFile;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
+import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author snowalker
  * @version 1.0
  * @date 2022/4/10 19:36
  * @desc RaftNodeStore文件实现
+ *          格式：[currentTerm][votedFor_length][votedFor_content]
+ *          思路：使用二进制方式存储term及votedFor
+ *               文件格式（votedFor的实际值为节点id-->RaftNodeId的字符串形式）
+ *               1. currentTerm          4字节
+ *               2. votedFor内容长度      4字节        <------|
+ *               3. votedFor内容         变长 具体长度由2决定- |
  */
 public class FileRaftNodeStore implements RaftNodeStore {
 
 	private static final String FILE_NAME = "node.bin";
 	private static final long OFFSET_TERM = 0;
 	private static final long OFFSET_VOTED_FOR = 4;
-//	private final RandomAccessFile randomAccessFile;
+
+	// 初始化：length(term + votedFor) == 8
+	private static final long TRUNCATE_SIZE = 8L;
+
 	private final SeekableFile seekableFile;
+
 	private int currentTerm = 0;
 	private RaftNodeId votedFor = null;
 
@@ -46,7 +57,42 @@ public class FileRaftNodeStore implements RaftNodeStore {
 		}
 	}
 
-	private void initializeOrLoadFile() {
+	/**
+	 * 从模拟文件读取，用于测试
+	 * @param seekableFile
+	 */
+	public FileRaftNodeStore(SeekableFile seekableFile) {
+		this.seekableFile = seekableFile;
+		try {
+			initializeOrLoadFile();
+		} catch (IOException e) {
+			throw new NodeStoreException(e);
+		}
+	}
+
+	private void initializeOrLoadFile() throws IOException {
+
+		if (seekableFile.size() == 0) {
+			// 初始化：length(term + votedFor) == 8
+			seekableFile.truncate(TRUNCATE_SIZE);     // 预分配长度
+			seekableFile.seek(0);       // 定位到初始位置
+			seekableFile.writeInt(0);         // 写入初始化term
+			seekableFile.writeInt(0);         // 写入初始化votedFor
+			return;
+		}
+
+		// 存在值则加载
+
+		// 1.读取term
+		currentTerm = seekableFile.readInt();
+		// 2.读取votedFor
+		int length = seekableFile.readInt();
+		if (length > 0) {
+			// votedFor大于0表明投过票
+			byte[] bytes = new byte[length];
+			seekableFile.read(bytes);
+			votedFor = RaftNodeId.of(new String(bytes));
+		}
 	}
 
 	/**
@@ -54,7 +100,7 @@ public class FileRaftNodeStore implements RaftNodeStore {
 	 */
 	@Override
 	public int getCurrentTerm() {
-		return 0;
+		return currentTerm;
 	}
 
 	/**
@@ -64,7 +110,14 @@ public class FileRaftNodeStore implements RaftNodeStore {
 	 */
 	@Override
 	public void setCurrentTerm(int currentTerm) {
-
+		try {
+			// 定位到term
+			seekableFile.seek(OFFSET_TERM);
+			seekableFile.writeInt(currentTerm);
+		} catch (IOException e) {
+			throw new NodeStoreException(e);
+		}
+		this.currentTerm = currentTerm;
 	}
 
 	/**
@@ -72,7 +125,7 @@ public class FileRaftNodeStore implements RaftNodeStore {
 	 */
 	@Override
 	public RaftNodeId getVotedFor() {
-		return null;
+		return votedFor;
 	}
 
 	/**
@@ -82,7 +135,24 @@ public class FileRaftNodeStore implements RaftNodeStore {
 	 */
 	@Override
 	public void setVotedFor(RaftNodeId votedFor) {
+		try {
+			// 定位到votedFor开始位置
+			seekableFile.seek(OFFSET_VOTED_FOR);
 
+			if (votedFor == null) {
+				// 初始化
+				seekableFile.writeInt(0);
+				seekableFile.truncate(TRUNCATE_SIZE);
+			} else {
+				byte[] bytes = votedFor.getVal().getBytes(StandardCharsets.UTF_8);
+				seekableFile.writeInt(bytes.length);        // votedFor长度
+				seekableFile.write(bytes);                  // votedFor内容
+			}
+
+		} catch (IOException e) {
+			throw new NodeStoreException(e);
+		}
+		this.votedFor = votedFor;
 	}
 
 	/**
@@ -90,6 +160,10 @@ public class FileRaftNodeStore implements RaftNodeStore {
 	 */
 	@Override
 	public void close() {
-
+		try {
+			seekableFile.close();
+		} catch (IOException e) {
+			throw new NodeStoreException(e);
+		}
 	}
 }
