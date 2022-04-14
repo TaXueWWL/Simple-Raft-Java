@@ -1,5 +1,6 @@
 package com.snowalker.raft.core.leaderelection.role;
 
+import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
 import com.snowalker.raft.core.leaderelection.task.ElectionTimeoutTimer;
 import com.snowalker.raft.core.leaderelection.RoleType;
 import lombok.Getter;
@@ -69,6 +70,11 @@ public class CandidateRole extends AbstractRaftNodeRole {
 	public void cancelTimeOutOrTaskOfCurrentRole() {
 		// 对于candidate而言，取消超时
 		electionTimeout.cancel();
+	}
+
+	@Override
+	public RaftNodeId getLeaderId(RaftNodeId selfId) {
+		return null;
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.snowalker.raft.core.leaderelection.role;
 
 import com.snowalker.raft.core.leaderelection.RoleType;
+import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
 import lombok.Getter;
 
 /**
@@ -39,5 +40,7 @@ public abstract class AbstractRaftNodeRole {
 	 * 再创建新的超时或者定时任务
 	 */
 	public abstract void cancelTimeOutOrTaskOfCurrentRole();
+
+	public abstract RaftNodeId getLeaderId(RaftNodeId selfId);
 
 }

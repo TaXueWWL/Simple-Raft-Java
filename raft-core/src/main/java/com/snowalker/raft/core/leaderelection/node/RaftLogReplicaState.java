@@ -8,11 +8,36 @@ package com.snowalker.raft.core.leaderelection.node;
  */
 public class RaftLogReplicaState {
 
+	private boolean replicating;
+
+
 	public int nextLogIndex() {
 		return -1;
 	}
 
 	public int matchedLogIndex() {
 		return -1;
+	}
+
+	public boolean advance(int lastEntryIndex) {
+		return false;
+	}
+
+	public boolean isReplicating() {
+		return false;
+	}
+
+	public void setReplicating(boolean b) {
+	}
+
+	public long getLastReplicatedAt() {
+		return -1;
+	}
+
+	public void setLastReplicatedAt(long replicatedAt) {
+	}
+
+	public boolean backOffNextIndex() {
+		return false;
 	}
 }

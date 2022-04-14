@@ -1,13 +1,13 @@
-package com.snowalker.raft.core;
+package com.snowalker.raft.core.leaderelection;
 
 import com.google.common.eventbus.EventBus;
+import com.snowalker.raft.core.leaderelection.node.RaftGroupMemberMetadata;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeGroup;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
 import com.snowalker.raft.core.leaderelection.task.Scheduler;
 import com.snowalker.raft.core.network.RpcConnector;
 import com.snowalker.raft.core.scheduler.TaskExecutor;
 import com.snowalker.raft.core.store.RaftNodeStore;
-import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -70,5 +70,7 @@ public class RaftNodeContext {
 		return store;
 	}
 
-
+	public RaftGroupMemberMetadata findMember(RaftNodeId sourceNodeId) {
+		return group.findMemberNormally(sourceNodeId);
+	}
 }

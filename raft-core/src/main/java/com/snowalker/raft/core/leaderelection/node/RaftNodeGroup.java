@@ -105,4 +105,12 @@ public class RaftNodeGroup {
 		}
 		return map;
 	}
+
+	/**
+	 * 获取节点数量
+	 * @return
+	 */
+	public int getCountOfMajor() {
+		return (int) raftGroupMemberMap.values().stream().filter(RaftGroupMemberMetadata::isMajor).count();
+	}
 }

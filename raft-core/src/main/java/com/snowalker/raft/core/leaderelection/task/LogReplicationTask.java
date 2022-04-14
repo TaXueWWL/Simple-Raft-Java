@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class LogReplicationTask {
 
+	public static final LogReplicationTask NONE = new LogReplicationTask(new NullScheduledFuture());
+
 	private final ScheduledFuture<?> scheduledFuture;
 
 	public LogReplicationTask(ScheduledFuture<?> scheduledFuture) {

@@ -56,6 +56,11 @@ public class FollowerRole extends AbstractRaftNodeRole {
 	}
 
 	@Override
+	public RaftNodeId getLeaderId(RaftNodeId selfId) {
+		return leaderId;
+	}
+
+	@Override
 	public String toString() {
 		return "FollowerRole{" +
 				"term=" + term +

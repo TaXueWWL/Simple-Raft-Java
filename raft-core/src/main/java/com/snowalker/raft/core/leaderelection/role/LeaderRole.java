@@ -1,6 +1,7 @@
 package com.snowalker.raft.core.leaderelection.role;
 
 import com.snowalker.raft.core.leaderelection.RoleType;
+import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
 import com.snowalker.raft.core.leaderelection.task.LogReplicationTask;
 
 /**
@@ -32,6 +33,11 @@ public class LeaderRole extends AbstractRaftNodeRole {
 	public void cancelTimeOutOrTaskOfCurrentRole() {
 		// 对leader而言，需要取消日志复制任务
 		logReplicationTask.cancel();
+	}
+
+	@Override
+	public RaftNodeId getLeaderId(RaftNodeId selfId) {
+		return selfId;
 	}
 
 	@Override
