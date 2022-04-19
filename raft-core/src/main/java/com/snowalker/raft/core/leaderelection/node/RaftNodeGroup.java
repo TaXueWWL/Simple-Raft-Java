@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -80,12 +81,24 @@ public class RaftNodeGroup {
 	 * 枚举日志复制节点，即枚举除本身之外的其他所有节点
 	 * @return
 	 */
-	public Collection<RaftNodeEndPoint> listReplicationMembersWithoutSelf() {
+	public Set<RaftNodeEndPoint> listReplicationMembersWithoutSelf() {
 		return raftGroupMemberMap.entrySet()
 				.stream()
 				.filter(groupMember -> !groupMember.getKey().equals(this.currentNodeId))
 				.map(Map.Entry::getValue)
 				.map(RaftGroupMemberMetadata::getEndPoint)
+				.collect(Collectors.toSet());
+	}
+
+	/**
+	 * List replication target.
+	 * <p>Self is not replication target.</p>
+	 *
+	 * @return replication targets.
+	 */
+	public Collection<RaftGroupMemberMetadata> listReplicationTarget() {
+		return raftGroupMemberMap.values().stream()
+				.filter(id -> !id.idEquals(currentNodeId))
 				.collect(Collectors.toList());
 	}
 

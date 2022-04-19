@@ -1,11 +1,11 @@
 package com.snowalker.raft.core.leaderelection;
 
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.Subscribe;
 import com.snowalker.raft.core.leaderelection.node.IRaftNode;
+import com.snowalker.raft.core.leaderelection.node.RaftGroupMemberMetadata;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
-import com.snowalker.raft.core.leaderelection.protocol.RequestVoteRpcMessage;
-import com.snowalker.raft.core.leaderelection.protocol.RequestVoteRpcRequest;
-import com.snowalker.raft.core.leaderelection.protocol.RequestVoteRpcResponse;
+import com.snowalker.raft.core.leaderelection.protocol.*;
 import com.snowalker.raft.core.leaderelection.role.AbstractRaftNodeRole;
 import com.snowalker.raft.core.leaderelection.role.CandidateRole;
 import com.snowalker.raft.core.leaderelection.role.FollowerRole;
@@ -14,6 +14,7 @@ import com.snowalker.raft.core.leaderelection.task.ElectionTimeoutTimer;
 import com.snowalker.raft.core.leaderelection.task.LogReplicationTask;
 import com.snowalker.raft.core.store.RaftNodeStore;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.Objects;
 
@@ -132,7 +133,7 @@ public class RaftNode implements IRaftNode {
 		// 角色变更为candidate
 		changeToRole(new CandidateRole(newTerm, scheduleElectionTimeout()));
 
-		// 发送RequestVote消息
+		// 发送RequestVote消息 到 集群中其他机器
 		RequestVoteRpcRequest requestVoteRpcRequest = RequestVoteRpcRequest.builder()
 				.term(newTerm)
 				.candidateId(context.currentId())
@@ -154,6 +155,114 @@ public class RaftNode implements IRaftNode {
 						context.findMember(rpcMessage.getSourceNodeId()).getEndPoint()
 				)
 		);
+	}
+
+	/**
+	 * 接收到投票响应的处理逻辑
+	 * @param result
+	 */
+	@Subscribe
+	private void onReceiveRequestVoteResponse(RequestVoteRpcResponse result) {
+		context.taskExecutor().submit(() -> doProcessRequestVoteResponse(result));
+	}
+
+	/**
+	 * 其他节点接收到来自leader的心跳消息
+	 */
+	@Subscribe
+	public void onReceiveAppendEntriesRpc(AppendEntriesRpcMessage rpcMessage) {
+		context.taskExecutor().submit(
+				() -> context.connector().replyAppendEntries(
+						doProcessAppendEntriesRpc(rpcMessage),
+						// 发送消息的节点
+						context.findMember(rpcMessage.getSourceNodeId()).getEndPoint()
+				)
+		);
+	}
+
+	/**
+	 * Leader节点接收到其他节点的心跳响应
+	 * @param resultMessage
+	 */
+	@Subscribe
+	public void onReceiveAppendEntriesRpcResponse(AppendEntriesResultMessage resultMessage) {
+		context.taskExecutor().submit(() -> doProcessAppendEntriesResult(resultMessage));
+	}
+
+	/**
+	 * Leader处理日志追加响应
+	 * @param resultMessage
+	 */
+	private void doProcessAppendEntriesResult(AppendEntriesResultMessage resultMessage) {
+
+		AppendEntriesRpcResponse response = resultMessage.get();
+
+		// 如果对方的term比自己的大，则自己退化为follower
+		if (response.getTerm() > role.getTerm()) {
+			becomeFollower(response.getTerm(), null, null, true);
+			return;
+		}
+
+		// 检查自己的角色, 如果不是leader但收到了日志追加响应，则忽略
+		if (role.getRoleType() != RoleType.LEADER) {
+			log.warn("Receive append entries result from node :{}, but current node is not leader, so ignore.", resultMessage.getSourceNodeId());
+		}
+		return;
+	}
+
+	/**
+	 * 执行追加日志entries逻辑
+	 * @param rpcMessage
+	 */
+	private AppendEntriesRpcResponse doProcessAppendEntriesRpc(AppendEntriesRpcMessage rpcMessage) {
+		AppendEntriesRpcRequest rpc = rpcMessage.getRpc();
+
+		// (case 1) 如果对方的term比自己的小  返回自己的term
+		if (rpc.getTerm() < role.getTerm()) {
+			return AppendEntriesRpcResponse.of(role.getTerm(), false);
+		}
+
+		//(case 2) 如果对方的term比自己大，则退化为follower
+		if (rpc.getTerm() > role.getTerm()) {
+			becomeFollower(rpc.getTerm(), null, rpc.getLeaderId(), true);
+			// 追加日志
+			return AppendEntriesRpcResponse.of(rpc.getTerm(), appendLogEntries(rpc));
+		}
+
+		Preconditions.checkArgument(rpc.getTerm() == role.getTerm(), "rpc.getTerm() should == role.getTerm()");
+
+		switch (role.getRoleType()) {
+
+			case FOLLOWER:
+
+				// (case 3) 设置leaderId并重置选举定时器
+				becomeFollower(role.getTerm(), ((FollowerRole)role).getVotedFor(), rpc.getLeaderId(), true);
+				// 追加日志
+				return AppendEntriesRpcResponse.of(rpc.getTerm(), appendLogEntries(rpc));
+
+			case CANDIDATE:
+
+				// (case 4) 如果有两个candidate角色，并且另外一个candidate先成为了leader。
+				// 则当前节点退化为follower并重置选举定时器
+				becomeFollower(rpc.getTerm(), null, rpc.getLeaderId(), true);
+				// 追加日志
+				return AppendEntriesRpcResponse.of(rpc.getTerm(), appendLogEntries(rpc));
+
+			case LEADER:
+
+				// (case 5) Leader收到AppendEntries消息，打印告警日志
+				log.warn("[WRONG APPEND_ENTRIES] Role: [Leader] Received append entries rpc from another LEADER {}", rpc.getLeaderId());
+				return AppendEntriesRpcResponse.of(rpc.getTerm(), false);
+
+			default:
+
+				throw new IllegalStateException("UnExpected node role [" + role.getRoleType() + "]");
+		}
+	}
+
+	// TODO
+	private boolean appendLogEntries(AppendEntriesRpcRequest rpc) {
+		return true;
 	}
 
 	private RequestVoteRpcResponse doProcessRequestVoteRpc(RequestVoteRpcMessage rpcMessage) {
@@ -220,16 +329,6 @@ public class RaftNode implements IRaftNode {
 		changeToRole(new FollowerRole(term, votedFor, leaderId, electionTimeoutTimer));
 	}
 
-	/**
-	 * 接收到投票响应的处理逻辑
-	 * @param result
-	 */
-	@Subscribe
-	private void onReceiveRequestVoteResponse(RequestVoteRpcResponse result) {
-		context.taskExecutor().submit(
-				() -> doProcessRequestVoteResponse(result)
-		);
-	}
 
 	private void doProcessRequestVoteResponse(RequestVoteRpcResponse result) {
 		// 如果对象的term比自己的大，则退化为follower (已经有更高term的candidate当选)
@@ -279,10 +378,31 @@ public class RaftNode implements IRaftNode {
 	}
 
 	/**
-	 * TODO 日志复制实现
+	 *  日志复制
 	 */
 	private void replicateLog() {
+		context.taskExecutor().submit(this::doReplicateLog);
+	}
 
+	/**
+	 * TODO 日志复制实现
+	 * 为集群中非leader节点发送appendEntries消息
+	 */
+	private void doReplicateLog() {
+		log.debug("Begin doReplicateLog.");
+		for (RaftGroupMemberMetadata member : context.group().listReplicationTarget()) {
+			doMemberReplicateLog(member);
+		}
+	}
+
+	private void doMemberReplicateLog(RaftGroupMemberMetadata member) {
+		AppendEntriesRpcRequest rpc = AppendEntriesRpcRequest.builder()
+				.term(role.getTerm())
+				.leaderId(context.currentId())
+				.prevLogIndex(0)
+				.prevLogTerm(0)
+				.leaderCommit(0).build();
+		context.connector().sendAppendEntries(rpc, member.getEndPoint());
 	}
 
 	/**
