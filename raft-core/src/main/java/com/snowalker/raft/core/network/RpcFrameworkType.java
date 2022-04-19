@@ -7,5 +7,5 @@ package com.snowalker.raft.core.network;
  * @desc rpc框架类型
  */
 public enum RpcFrameworkType {
-	GRPC, NETTY;
+	DEFAULT, GRPC, NETTY;
 }

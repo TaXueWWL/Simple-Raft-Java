@@ -13,8 +13,8 @@ import com.snowalker.raft.core.leaderelection.role.LeaderRole;
 import com.snowalker.raft.core.leaderelection.task.ElectionTimeoutTimer;
 import com.snowalker.raft.core.leaderelection.task.LogReplicationTask;
 import com.snowalker.raft.core.store.RaftNodeStore;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.Objects;
 
@@ -39,6 +39,7 @@ public class RaftNode implements IRaftNode {
 	/**
 	 * 当前节点的角色
 	 */
+	@Getter
 	private AbstractRaftNodeRole role;
 
 	public RaftNode(RaftNodeContext context) {

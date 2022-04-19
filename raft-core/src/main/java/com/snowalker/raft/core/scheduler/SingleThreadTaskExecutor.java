@@ -1,8 +1,11 @@
 package com.snowalker.raft.core.scheduler;
 
+import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.FutureCallback;
 import net.openhft.affinity.AffinityStrategies;
 import net.openhft.affinity.AffinityThreadFactory;
 
+import java.util.Collection;
 import java.util.concurrent.*;
 
 /**
@@ -53,6 +56,20 @@ public class SingleThreadTaskExecutor implements TaskExecutor {
 	@Override
 	public <V> Future<V> submit(Callable<V> task) {
 		return this.executorService.submit(task);
+	}
+
+	@Override
+	public void submit(Runnable task, Collection<FutureCallback<?>> callbacks) {
+		Preconditions.checkNotNull(task);
+		Preconditions.checkNotNull(callbacks);
+		executorService.submit(() -> {
+			try {
+				task.run();
+				callbacks.forEach(c -> c.onSuccess(null));
+			} catch (Exception e) {
+				callbacks.forEach(c -> c.onFailure(e));
+			}
+		});
 	}
 
 	/**

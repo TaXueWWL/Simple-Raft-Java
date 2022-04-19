@@ -26,6 +26,16 @@ public class MemoryRaftNodeStore implements RaftNodeStore {
 	}
 
 	/**
+	 * 存储类别
+	 *
+	 * @return
+	 */
+	@Override
+	public StoreType storeType() {
+		return StoreType.MEMORY;
+	}
+
+	/**
 	 * 获取currentTerm
 	 */
 	@Override

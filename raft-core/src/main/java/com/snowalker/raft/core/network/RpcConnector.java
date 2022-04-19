@@ -17,7 +17,7 @@ import java.util.Collection;
 public interface RpcConnector {
 
 	/**RPC框架类型*/
-	void frameworkType();
+	RpcFrameworkType frameworkType();
 
 	/**初始化*/
 	void initialize();

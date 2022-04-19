@@ -10,6 +10,12 @@ import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
  */
 public interface RaftNodeStore {
 
+	/**
+	 * 存储类别
+	 * @return
+	 */
+	StoreType storeType();
+
 	/**获取currentTerm*/
 	int getCurrentTerm();
 

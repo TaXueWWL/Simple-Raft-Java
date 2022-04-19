@@ -96,6 +96,16 @@ public class FileRaftNodeStore implements RaftNodeStore {
 	}
 
 	/**
+	 * 存储类别
+	 *
+	 * @return
+	 */
+	@Override
+	public StoreType storeType() {
+		return StoreType.FILE;
+	}
+
+	/**
 	 * 获取currentTerm
 	 */
 	@Override

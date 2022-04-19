@@ -1,5 +1,8 @@
 package com.snowalker.raft.core.scheduler;
 
+import com.google.common.util.concurrent.FutureCallback;
+
+import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -25,6 +28,8 @@ public interface TaskExecutor {
 	 * @return
 	 */
 	<V> Future<V> submit(Callable<V> task);
+
+	void submit(Runnable task, Collection<FutureCallback<?>> callbacks);
 
 	/**关闭任务执行器*/
 	void shutdown() throws InterruptedException;
