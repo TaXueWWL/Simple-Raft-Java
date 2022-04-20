@@ -30,6 +30,7 @@ public class RaftNode implements IRaftNode {
 	/**
 	 * 核心组件上下文
 	 */
+	@Getter
 	private final RaftNodeContext context;
 	/**
 	 * 是否启动标识
@@ -131,8 +132,8 @@ public class RaftNode implements IRaftNode {
 
 		log.info("[Leader-election] Begin current Leader election！");
 
-		// 角色变更为candidate
-		changeToRole(new CandidateRole(newTerm, scheduleElectionTimeout()));
+		// 角色变更为candidate 为自己投1票
+		changeToRole(new CandidateRole(newTerm, 1, scheduleElectionTimeout()));
 
 		// 发送RequestVote消息 到 集群中其他机器
 		RequestVoteRpcRequest requestVoteRpcRequest = RequestVoteRpcRequest.builder()
@@ -163,7 +164,7 @@ public class RaftNode implements IRaftNode {
 	 * @param result
 	 */
 	@Subscribe
-	private void onReceiveRequestVoteResponse(RequestVoteRpcResponse result) {
+	public void onReceiveRequestVoteResponse(RequestVoteRpcResponse result) {
 		context.taskExecutor().submit(() -> doProcessRequestVoteResponse(result));
 	}
 
@@ -381,7 +382,7 @@ public class RaftNode implements IRaftNode {
 	/**
 	 *  日志复制
 	 */
-	private void replicateLog() {
+	public void replicateLog() {
 		context.taskExecutor().submit(this::doReplicateLog);
 	}
 

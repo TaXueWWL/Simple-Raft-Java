@@ -21,4 +21,8 @@ public class RaftNodeEndPoint {
 		this(RaftNodeId.of(nodeId), RaftNodeAddress.of(ipAddress, port));
 	}
 
+	public static RaftNodeEndPoint of(String nodeId, String ipAddress, int port) {
+		return new RaftNodeEndPoint(nodeId, ipAddress, port);
+	}
+
 }

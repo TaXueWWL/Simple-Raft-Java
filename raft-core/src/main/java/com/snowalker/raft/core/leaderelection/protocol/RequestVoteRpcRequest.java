@@ -11,6 +11,8 @@ import lombok.*;
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class RequestVoteRpcRequest {
 
 	/**当前选举的任期*/
@@ -24,4 +26,8 @@ public class RequestVoteRpcRequest {
 
 	/**候选人最后一条日志任期*/
 	private int lastLogTerm = 0;
+
+	public static RequestVoteRpcRequest of(int term, RaftNodeId candidateId, int lastLogIndex, int lastLogTerm) {
+		return new RequestVoteRpcRequest(term, candidateId, lastLogIndex, lastLogTerm);
+	}
 }

@@ -102,7 +102,7 @@ public class RaftNodeBuilder {
 		context.setGroup(this.group);
 		context.setCurrentId(this.selfId);
 		context.setEventBus(this.eventBus);
-		// TODO 重构为基于参数配置
+		// TODO 重构为基于参数配置 
 		context.setScheduler(scheduler != null ? scheduler : new DefaultScheduler(10, 200, 20, 20));
 		context.setConnector(this.connector);
 		context.setTaskExecutor(taskExecutor != null ? taskExecutor : new SingleThreadTaskExecutor("node"));
