@@ -6,9 +6,7 @@ import com.snowalker.raft.core.leaderelection.RaftNode;
 import com.snowalker.raft.core.leaderelection.RaftNodeBuilder;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeEndPoint;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
-import com.snowalker.raft.core.leaderelection.protocol.RequestVoteRpcMessage;
-import com.snowalker.raft.core.leaderelection.protocol.RequestVoteRpcRequest;
-import com.snowalker.raft.core.leaderelection.protocol.RequestVoteRpcResponse;
+import com.snowalker.raft.core.leaderelection.protocol.*;
 import com.snowalker.raft.core.leaderelection.role.CandidateRole;
 import com.snowalker.raft.core.leaderelection.role.FollowerRole;
 import com.snowalker.raft.core.leaderelection.role.LeaderRole;
@@ -164,6 +162,68 @@ public class RaftNodeTestCase {
 		Assert.assertEquals(2, destinationNodeIds.size());
 		Assert.assertTrue(destinationNodeIds.contains(RaftNodeId.of("B")));
 		Assert.assertTrue(destinationNodeIds.contains(RaftNodeId.of("C")));
+		AppendEntriesRpcRequest rpcRequest = (AppendEntriesRpcRequest) messages.get(2).getRpc();
+		Assert.assertEquals(1, rpcRequest.getTerm());
+	}
 
+	@DisplayName("收到来自Leader节点的心跳消息")
+	@Test
+	public void testOnReceiveAppendEntriesRpcFollowerRole() {
+		// 三节点Raft集群，A启动之后收到来自Leader节点B的心跳消息，设置自己的term和leader并回复ok
+		RaftNode node = (RaftNode) newNodeBuilder(
+				RaftNodeId.of("A"),
+				new RaftNodeEndPoint("A", "localhost", 8080),
+				new RaftNodeEndPoint("B", "localhost", 8081),
+				new RaftNodeEndPoint("C", "localhost", 8082)
+		).build();
+
+		node.start();
+
+		AppendEntriesRpcRequest rpc = new AppendEntriesRpcRequest();
+		rpc.setTerm(1);
+		// Leader为B
+		rpc.setLeaderId(RaftNodeId.of("B"));
+
+		node.onReceiveAppendEntriesRpc(new AppendEntriesRpcMessage(rpc, RaftNodeId.of("B"), null));
+
+		MockConnector connector = (MockConnector) node.getContext().connector();
+
+		AppendEntriesRpcResponse response = (AppendEntriesRpcResponse) connector.getResult();
+
+		Assert.assertEquals(1, response.getTerm());
+		Assert.assertTrue(response.isSuccess());
+
+		FollowerRole role = (FollowerRole) node.getRole();
+
+		Assert.assertEquals(1, role.getTerm());
+		Assert.assertEquals(RaftNodeId.of("B"), role.getLeaderId());
+	}
+
+	@Test
+	@DisplayName("Leader节点收到其他节点响应")
+	public void testOnReceiveAppendEntriesNormal() {
+		RaftNode node = (RaftNode) newNodeBuilder(
+				RaftNodeId.of("A"),
+				new RaftNodeEndPoint("A", "localhost", 8080),
+				new RaftNodeEndPoint("B", "localhost", 8081),
+				new RaftNodeEndPoint("C", "localhost", 8082)
+		).build();
+
+		node.start();
+
+		// 成为候选人
+		node.electionTimeout();
+
+		node.onReceiveRequestVoteResponse(RequestVoteRpcResponse.of(1, true));
+
+		// 成为leader
+		node.replicateLog();
+
+		node.onReceiveAppendEntriesRpcResponse(
+				AppendEntriesResultMessage.builder()
+						.result(AppendEntriesRpcResponse.of(1, true))
+						.sourceNodeId(RaftNodeId.of("B"))
+						.rpc(new AppendEntriesRpcRequest()).build()
+		);
 	}
 }

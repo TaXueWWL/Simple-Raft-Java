@@ -2,8 +2,10 @@ package com.snowalker.raft.core.leaderelection.protocol;
 
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
-
+@Builder
 @AllArgsConstructor
 public class AppendEntriesResultMessage {
 
