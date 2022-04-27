@@ -2,8 +2,6 @@ package com.snowalker.raft.core.leaderelection;
 
 import com.google.common.collect.Lists;
 import com.snowalker.raft.common.annotation.DisplayName;
-import com.snowalker.raft.core.leaderelection.RaftNode;
-import com.snowalker.raft.core.leaderelection.RaftNodeBuilder;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeEndPoint;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
 import com.snowalker.raft.core.leaderelection.protocol.*;
