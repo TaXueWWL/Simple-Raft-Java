@@ -16,7 +16,7 @@ public interface ILog {
 
 	int ALL_ENTRIES = -1;
 
-	// 获取最后一个日志的元数据
+	/** 获取最后一个日志的元数据*/
 	LogEntryMeta getLastEntryData();
 
 	/**
@@ -29,10 +29,10 @@ public interface ILog {
 	 */
 	AppendEntriesRpcResponse createAppendEntriesRpc(int term, RaftNodeId selfId, int nextIndex, int maxEntries);
 
-	// (Leader角色)获取下一条日志的索引
+	/** (Leader角色)获取下一条日志的索引*/
 	int getNextIndex();
 
-	// (Leader角色)当前日志已提交的索引
+	/* (Leader角色)当前日志已提交的索引*/
 	int getCommitIndex();
 
 	/**
@@ -44,18 +44,18 @@ public interface ILog {
 	 */
 	boolean isNewerThan(int lastLogIndex, int lastLogTerm);
 
-	// (Leader角色)增加一个NO-OP日志，用于Leader选举成功之后先行发送
+	/* (Leader角色)增加一个NO-OP日志，用于Leader选举成功之后先行发送*/
 	NoOpLogEntry appendEntry(int term);
 
-	// (leader角色)增加一个普通日志，用于日志
+	/* (leader角色)增加一个普通日志，用于日志*/
 	GeneralLogEntry appendEntry(int term, byte[] command);
 
-	// (follower角色)追加来自leader的日志条目
+	/* (follower角色)追加来自leader的日志条目*/
 	boolean appendEntriesFromLeader(int prevLogIndex, int prevLogTerm, List<LogEntry> entries);
 
-	// (follower角色)对日志的commitIndex进行推进
+	/* (follower角色)对日志的commitIndex进行推进*/
 	void advanceCommitIndex(int newCommitIndex, int currentTerm);
 
-	// 关闭日志同步
+	/* 关闭日志同步*/
 	void close();
 }

@@ -20,14 +20,14 @@ import java.util.List;
 public abstract class AbstractEntrySequence implements EntrySequence {
 
 	/**日志索引偏移量*/
-	private int logIndexOffset;
+	protected int logIndexOffset;
 
 	/**下一条日志索引*/
-	private int nextLogIndex;
+	protected int nextLogIndex;
 
-	public AbstractEntrySequence(int logIndexOffset, int nextLogIndex) {
+	public AbstractEntrySequence(int logIndexOffset) {
 		this.logIndexOffset = logIndexOffset;
-		this.nextLogIndex = nextLogIndex;
+		this.nextLogIndex = logIndexOffset;
 	}
 
 
@@ -112,7 +112,15 @@ public abstract class AbstractEntrySequence implements EntrySequence {
 	 */
 	@Override
 	public List<LogEntry> subList(int fromIndex, int toIndex) {
-		return null;
+
+		if (isEmpty()) {
+			throw new SequenceEmptyException();
+		}
+
+		if (fromIndex < doGetFirstLogIndex() || toIndex > doGetLastLogIndex() + 1 || fromIndex > toIndex) {
+			throw new IllegalArgumentException("Wrong index, fromIndex:" + fromIndex + ", toIndex:" + toIndex);
+		}
+		return doSubList(fromIndex, toIndex);
 	}
 
 	/**
@@ -152,18 +160,11 @@ public abstract class AbstractEntrySequence implements EntrySequence {
 	}
 
 	/**
-	 * 如何获取日志内容，由具体的子类实现
-	 * @param index
-	 * @return
-	 */
-	protected abstract LogEntry doGetEntry(int index);
-
-	/**
 	 * 为了方便，增加一个获取最后一条日志的方法
 	 */
 	@Override
 	public LogEntry getLastEntry() {
-		return null;
+		return isEmpty() ? null : doGetEntry(doGetLastLogIndex());
 	}
 
 	/**
@@ -173,7 +174,12 @@ public abstract class AbstractEntrySequence implements EntrySequence {
 	 */
 	@Override
 	public void append(LogEntry entry) {
-
+		// 保证新日志的索引是当前索引的下一条
+		if (entry.getIndex() != nextLogIndex) {
+			throw new IllegalArgumentException("Entry index must be :" + nextLogIndex);
+		}
+		doAppend(entry);
+		++nextLogIndex;
 	}
 
 	/**
@@ -182,8 +188,10 @@ public abstract class AbstractEntrySequence implements EntrySequence {
 	 * @param entries
 	 */
 	@Override
-	public void batchAppend(List<LogEntry> entries) {
-
+	public void append(List<LogEntry> entries) {
+		for (LogEntry entry : entries) {
+			append(entry);
+		}
 	}
 
 	/**
@@ -212,8 +220,12 @@ public abstract class AbstractEntrySequence implements EntrySequence {
 	 */
 	@Override
 	public void removeAfter(int index) {
-
+		if (isEmpty() || index >= doGetLastLogIndex()) {
+			return;
+		}
+		doRemoveAfter(index);
 	}
+
 
 	/**
 	 * 关闭日志seq
@@ -222,4 +234,32 @@ public abstract class AbstractEntrySequence implements EntrySequence {
 	public void close() {
 
 	}
+
+	/**
+	 * 如何获取日志内容，由具体的子类实现
+	 * @param index
+	 * @return
+	 */
+	protected abstract LogEntry doGetEntry(int index);
+
+	/**
+	 * 获取日志子序列
+	 * @param fromIndex
+	 * @param toIndex
+	 * @return
+	 */
+	protected abstract List<LogEntry> doSubList(int fromIndex, int toIndex);
+
+	/**
+	 * 追加日志实现
+	 * @param entry
+	 */
+	protected abstract void doAppend(LogEntry entry);
+
+	/**
+	 * 移除某个索引之后的日志（方便快速进行日志的截取重放）
+	 * @param index
+	 */
+	protected abstract void doRemoveAfter(int index);
 }
+

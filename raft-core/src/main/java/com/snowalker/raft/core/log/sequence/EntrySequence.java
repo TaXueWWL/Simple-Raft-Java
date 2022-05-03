@@ -66,7 +66,7 @@ public interface EntrySequence {
 	void append(LogEntry entry);
 
 	/** （批量）追加日志*/
-	void batchAppend(List<LogEntry> entries);
+	void append(List<LogEntry> entries);
 
 	/** 推进commitIndex*/
 	void commit(int index);
