@@ -1,8 +1,7 @@
-package com.snowalker.raft.core.store;
+package com.snowalker.raft.core.store.support;
 
 import com.snowalker.raft.core.log.LogEntry;
-import com.snowalker.raft.core.store.support.RandomAccessFileDelegator;
-import com.snowalker.raft.core.store.support.SeekableFile;
+import com.snowalker.raft.core.log.LogEntryFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -78,5 +77,35 @@ public class EntriesFile {
 		seekableFile.read(commandBytes);
 
 		return logEntryFactory.create(kind, index, term, commandBytes);
+	}
+
+	/**
+	 * 获取文件大小
+	 * @return
+	 * @throws IOException
+	 */
+	public long size() throws IOException {
+		return seekableFile.size();
+	}
+
+	/**
+	 * 清空文件内容
+	 * @throws IOException
+	 */
+	public void clear() throws IOException {
+		truncate(0);
+	}
+
+	/**
+	 * 从指定的偏移量 裁减文件到指定大小
+	 * @param offset
+	 * @throws IOException
+	 */
+	public void truncate(long offset) throws IOException {
+		seekableFile.truncate(offset);
+	}
+
+	public void close() throws IOException {
+		seekableFile.close();
 	}
 }

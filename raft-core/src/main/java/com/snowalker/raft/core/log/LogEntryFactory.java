@@ -1,8 +1,4 @@
-package com.snowalker.raft.core.store;
-
-import com.snowalker.raft.core.log.GeneralLogEntry;
-import com.snowalker.raft.core.log.LogEntry;
-import com.snowalker.raft.core.log.NoOpLogEntry;
+package com.snowalker.raft.core.log;
 
 /**
  * @author snowalker
