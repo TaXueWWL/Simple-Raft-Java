@@ -2,6 +2,7 @@ package com.snowalker.raft.core.leaderelection.protocol;
 
 import com.google.common.collect.Lists;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
+import com.snowalker.raft.core.log.LogEntry;
 import lombok.*;
 
 import java.util.List;

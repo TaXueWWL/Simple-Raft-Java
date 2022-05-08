@@ -2,10 +2,9 @@ package com.snowalker.raft.core.store;
 
 import com.google.common.io.Files;
 import com.snowalker.raft.common.exception.NodeStoreException;
-import com.snowalker.raft.common.store.RandomAccessFileDelegator;
-import com.snowalker.raft.common.store.SeekableFile;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
-import lombok.Getter;
+import com.snowalker.raft.core.store.support.RandomAccessFileDelegator;
+import com.snowalker.raft.core.store.support.SeekableFile;
 
 import java.io.File;
 import java.io.IOException;
