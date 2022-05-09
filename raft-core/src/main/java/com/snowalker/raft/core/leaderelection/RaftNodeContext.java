@@ -7,7 +7,7 @@ import com.snowalker.raft.core.leaderelection.node.RaftNodeId;
 import com.snowalker.raft.core.leaderelection.task.Scheduler;
 import com.snowalker.raft.core.network.RpcConnector;
 import com.snowalker.raft.core.scheduler.TaskExecutor;
-import com.snowalker.raft.core.store.RaftNodeStore;
+import com.snowalker.raft.core.log.store.RaftNodeStore;
 import lombok.Setter;
 
 /**

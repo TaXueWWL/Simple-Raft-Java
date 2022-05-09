@@ -10,10 +10,8 @@ import com.snowalker.raft.core.leaderelection.task.Scheduler;
 import com.snowalker.raft.core.network.RpcConnector;
 import com.snowalker.raft.core.scheduler.SingleThreadTaskExecutor;
 import com.snowalker.raft.core.scheduler.TaskExecutor;
-import com.snowalker.raft.core.store.FileRaftNodeStore;
-import com.snowalker.raft.core.store.MemoryRaftNodeStore;
-import com.snowalker.raft.core.store.RaftNodeStore;
-import com.snowalker.raft.core.store.StoreType;
+import com.snowalker.raft.core.log.store.MemoryRaftNodeStore;
+import com.snowalker.raft.core.log.store.StoreType;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -102,7 +100,7 @@ public class RaftNodeBuilder {
 		context.setGroup(this.group);
 		context.setCurrentId(this.selfId);
 		context.setEventBus(this.eventBus);
-		// TODO 重构为基于参数配置 
+		// TODO 重构为基于参数配置
 		context.setScheduler(scheduler != null ? scheduler : new DefaultScheduler(10, 200, 20, 20));
 		context.setConnector(this.connector);
 		context.setTaskExecutor(taskExecutor != null ? taskExecutor : new SingleThreadTaskExecutor("node"));

@@ -1,4 +1,4 @@
-package com.snowalker.raft.core.store;
+package com.snowalker.raft.core.log.store;
 
 import com.snowalker.raft.common.annotation.TestOnly;
 import com.snowalker.raft.core.leaderelection.node.RaftNodeId;

@@ -12,7 +12,7 @@ import com.snowalker.raft.core.leaderelection.role.FollowerRole;
 import com.snowalker.raft.core.leaderelection.role.LeaderRole;
 import com.snowalker.raft.core.leaderelection.task.ElectionTimeoutTimer;
 import com.snowalker.raft.core.leaderelection.task.LogReplicationTask;
-import com.snowalker.raft.core.store.RaftNodeStore;
+import com.snowalker.raft.core.log.store.RaftNodeStore;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

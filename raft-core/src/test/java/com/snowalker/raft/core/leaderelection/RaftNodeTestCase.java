@@ -9,7 +9,7 @@ import com.snowalker.raft.core.leaderelection.role.CandidateRole;
 import com.snowalker.raft.core.leaderelection.role.FollowerRole;
 import com.snowalker.raft.core.leaderelection.role.LeaderRole;
 import com.snowalker.raft.core.scheduler.DirectTaskExecutor;
-import com.snowalker.raft.core.store.StoreType;
+import com.snowalker.raft.core.log.store.StoreType;
 import com.snowalker.raft.mock.MockConnector;
 import com.snowalker.raft.mock.NullScheduler;
 import org.junit.Assert;

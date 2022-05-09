@@ -1,4 +1,4 @@
-package com.snowalker.raft.core.store.support;
+package com.snowalker.raft.core.log.store.support;
 
 import com.snowalker.raft.core.log.LogEntry;
 import com.snowalker.raft.core.log.LogEntryFactory;

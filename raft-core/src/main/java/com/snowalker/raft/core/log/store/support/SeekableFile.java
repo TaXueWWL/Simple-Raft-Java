@@ -1,4 +1,4 @@
-package com.snowalker.raft.core.store.support;
+package com.snowalker.raft.core.log.store.support;
 
 import java.io.IOException;
 import java.io.InputStream;
