@@ -1,6 +1,5 @@
 package com.snowalker.raft.core.log.store.support;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
