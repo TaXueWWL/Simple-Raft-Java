@@ -226,6 +226,7 @@ public class EntryIndexFile implements Iterable<EntryIndexItem> {
 			}
 		}
 
+
 		/**
 		 * 获取下一条
 		 * @return
