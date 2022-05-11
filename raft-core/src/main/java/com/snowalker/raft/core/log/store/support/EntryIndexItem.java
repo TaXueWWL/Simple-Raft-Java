@@ -1,5 +1,6 @@
 package com.snowalker.raft.core.log.store.support;
 
+import com.snowalker.raft.core.log.LogEntryMeta;
 import lombok.Getter;
 
 /**
@@ -21,5 +22,9 @@ public class EntryIndexItem {
 		this.offset = offset;
 		this.kind = kind;
 		this.term = term;
+	}
+
+	public LogEntryMeta toEntryMeta() {
+		return LogEntryMeta.of(kind, index, term);
 	}
 }

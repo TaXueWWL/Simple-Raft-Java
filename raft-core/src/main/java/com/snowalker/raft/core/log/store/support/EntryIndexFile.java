@@ -3,6 +3,7 @@ package com.snowalker.raft.core.log.store.support;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -82,13 +83,14 @@ public class EntryIndexFile implements Iterable<EntryIndexItem> {
 
 	/**
 	 * 追加日志条目元信息  只允许顺序追加
+	 *
 	 * @param index
 	 * @param offset
 	 * @param kind
 	 * @param term
 	 * @throws IOException
 	 */
-	public void appendEntryIndex(int index, int offset, int kind, int term) throws IOException {
+	public void appendEntryIndex(int index, long offset, int kind, int term) throws IOException {
 		if (seekableFile.size() == 0L) {
 			seekableFile.writeInt(index);
 			minEntryIndex = index;
@@ -156,8 +158,18 @@ public class EntryIndexFile implements Iterable<EntryIndexItem> {
 		entryIndexCount = newMaxEntryIndex - minEntryIndex + 1;
 	}
 
+	@Nonnull
+	public EntryIndexItem get(int entryIndex) {
+		checkEmpty("get");
+		if (entryIndex < minEntryIndex || entryIndex > maxEntryIndex) {
+			throw new IllegalArgumentException("index < min or index > max");
+		}
+		return entryIndexMap.get(entryIndex);
+	}
+
 	/**
 	 * 清理索引文件
+	 *
 	 * @throws IOException
 	 */
 	public void clear() throws IOException {
@@ -171,13 +183,19 @@ public class EntryIndexFile implements Iterable<EntryIndexItem> {
 	}
 
 	public int getMinEntryIndex() {
-		checkEmpty();
+		checkEmpty("getMinEntryIndex");
 		return minEntryIndex;
 	}
 
-	private void checkEmpty() {
+	public int getMaxEntryIndex() {
+		checkEmpty("getMaxEntryIndex");
+		return maxEntryIndex;
+	}
+
+
+	private void checkEmpty(String methodName) {
 		if (isEmpty()) {
-			throw new IllegalStateException("no entry index");
+			throw new IllegalStateException("no entry index, method: [" + methodName + "]");
 		}
 	}
 
@@ -195,11 +213,19 @@ public class EntryIndexFile implements Iterable<EntryIndexItem> {
 		return new EntryIndexIterator(entryIndexCount, minEntryIndex);
 	}
 
+	public long getOffset(int index) {
+		return (index - minEntryIndex) * LENGTH_ENTRY_INDEX_ITEM + Integer.BYTES * 2;
+	}
+
 	private class EntryIndexIterator implements Iterator<EntryIndexItem> {
 
-		/**条目总数*/
+		/**
+		 * 条目总数
+		 */
 		private final int entryIndexCount;
-		/**当前索引值*/
+		/**
+		 * 当前索引值
+		 */
 		private int currentEntryIndex;
 
 		EntryIndexIterator(int entryIndexCount, int minEntryIndex) {
